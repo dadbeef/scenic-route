@@ -1,0 +1,3 @@
+#!/bin/bash
+
+export $(cat .env | grep -v '^#') && python -c 'import graph; graph.refresh_graph()'

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+export $(cat .env | grep -v '^#') && gunicorn -c gunicorn_conf.py -t 300 -b 127.0.0.1:2318 app:app
