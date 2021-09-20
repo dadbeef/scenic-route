@@ -25,11 +25,29 @@ def suggest(pub_key, **kw):
 
     g = copy.deepcopy(get_graph())
 
-    _remove_nodes_outside_tolerances(g, pub_key, opts)
     _add_distances_and_remove_unreachable(g, pub_key, opts)
+    _remove_nodes_outside_tolerances(g, pub_key, opts)
     _add_scores(g, pub_key, opts)
 
     return sorted(list(g.nodes().values()), key=lambda n: -n['score'])[:21]
+
+
+def _add_distances_and_remove_unreachable(g, pub_key, opts):
+    distances = {}
+    for k in g.nodes():
+        try:
+            distances[k] = len(nx.shortest_path(g, pub_key, k)) - 1
+        except nx.NodeNotFound:
+            raise InvalidPublicKey()
+        except nx.NetworkXNoPath:
+            pass
+
+    nx.set_node_attributes(g, distances, 'distance')
+
+    def filter_node(n):
+        return 'distance' not in g.nodes[n]
+
+    g.remove_nodes_from(list(nx.subgraph_view(g, filter_node=filter_node).nodes()))
 
 
 def _remove_nodes_outside_tolerances(g, pub_key, opts):
@@ -43,24 +61,6 @@ def _remove_nodes_outside_tolerances(g, pub_key, opts):
             or node['fee_base'] > opts['max:fee_base']
             or node['fee_rate'] > opts['max:fee_rate']
         )
-
-    g.remove_nodes_from(list(nx.subgraph_view(g, filter_node=filter_node).nodes()))
-
-
-def _add_distances_and_remove_unreachable(g, pub_key, opts):
-    distances = {}
-    for k in g.nodes():
-        try:
-            distances[k] = len(nx.shortest_path(g, pub_key, k))
-        except nx.NodeNotFound:
-            raise InvalidPublicKey()
-        except nx.NetworkXNoPath:
-            pass
-
-    nx.set_node_attributes(g, distances, 'distance')
-
-    def filter_node(n):
-        return 'distance' not in g.nodes[n]
 
     g.remove_nodes_from(list(nx.subgraph_view(g, filter_node=filter_node).nodes()))
 

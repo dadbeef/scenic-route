@@ -8,13 +8,6 @@ def get_graph():
     raw = get_raw()
     graph = nx.Graph()
 
-    max_capacity = max(edge['capacity'] for edge in raw['edges'])
-    max_fee_base_msat = max([
-        policy['fee_base_msat'] for edge in raw['edges']
-            for policy in [edge['node1_policy'], edge['node2_policy']] if policy
-    ])
-    #  max_fee_rate_milli_msat = max(edge['fee_rate_milli_msat'] for edge in raw['edges'])
-
     def _edge_attrs(edge):
         policy_ks = ['fee_base_msat', 'fee_rate_milli_msat']
 
