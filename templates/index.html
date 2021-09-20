@@ -127,7 +127,7 @@
 
       const addSuggestion = s => {
         const capacity = (s.capacity / 1000000).toFixed(3).replace(/\.?0+$/, '')
-        const url = `https://amboss.space/node/${target.pub_key}`
+        const url = `https://amboss.space/node/${s.pub_key}`
         const $wrapper = document.createElement('div')
 
         $wrapper.innerHTML = `
