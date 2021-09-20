@@ -21,7 +21,7 @@ class InvalidPublicKey(Exception):
 
 def suggest(pub_key, **kw):
     opts = defaults.copy()
-    opts.update(kw)
+    opts.update({k: v for k, v in kw.items() if v is not None})
 
     g = copy.deepcopy(get_graph())
 
