@@ -40,7 +40,7 @@ def _add_distances_and_remove_unreachable(g, pub_key, opts):
         except nx.NodeNotFound:
             raise InvalidPublicKey()
         except nx.NetworkXNoPath:
-            pass
+            distances[k] = float('inf')
 
     nx.set_node_attributes(g, distances, 'distance')
 
@@ -67,7 +67,7 @@ def _remove_nodes_outside_tolerances(g, pub_key, opts):
 
 def _add_scores(g, pub_key, opts):
     maximums = {
-        k: max([node[k] for node in g.nodes().values()])
+        k: max([node[k] for node in g.nodes().values() if node[k] != float('inf')])
         for k in ['channels', 'capacity', 'fee_base', 'fee_rate', 'distance']
     }
 
@@ -82,7 +82,8 @@ def _add_scores(g, pub_key, opts):
     scores = {}
     for k, node in g.nodes().items():
         scores[k] = sum([
-            score_scale['distance'] * node['distance'],
+            # Distance may be infinite for non-connected nodes, score it 1 better than the max
+            score_scale['distance'] * min(node['distance'], maximums['distance'] + 1),
             score_scale['channels'] * node['channels'],
             score_scale['capacity'] * node['capacity'],
             1 - (score_scale['fee_base'] * node['fee_base']),
